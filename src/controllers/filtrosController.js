@@ -1,4 +1,5 @@
 const connection = require('../models/db')
+/*
 
 module.exports.meses = (req, res) => {
     const { panio } = req.body;
@@ -83,3 +84,90 @@ module.exports.categoria = (req, res) => {
 
     }
 }
+*/
+
+// Función utilitaria para ejecutar consultas SQL simples
+function executeQuery(res, query, params) {
+    connection.query(query, params, (err, results) => {
+        if (err) {
+            console.error("Error al ejecutar la consulta:", err);
+            return res.status(500).json({ error: 'Error al obtener los datos' });
+        }
+
+        return res.json(results);
+    });
+}
+
+module.exports = {
+    meses: (req, res) => {
+        const { panio } = req.body;
+        if (!panio) return res.status(400).json({ error: 'Año es obligatorio' });
+
+        const consult = `
+            SELECT DISTINCT mes
+            FROM tmp_tabfac 
+            WHERE cia = 1 AND anio = ?
+            ORDER BY mes ASC;
+        `;
+        executeQuery(res, consult, [panio]);
+    },
+
+    distrito: (req, res) => {
+        const { panio } = req.body;
+        if (!panio) return res.status(400).json({ error: 'Año es obligatorio' });
+
+        const consult = `
+            SELECT distrito
+            FROM tmp_tabfac
+            WHERE cia = 1 AND anio = ?
+            GROUP BY distrito;
+        `;
+        executeQuery(res, consult, [panio]);
+    },
+
+    vendedor: (req, res) => {
+        const { panio, pdistrito } = req.body;
+        if (!panio) return res.status(400).json({ error: 'Año es obligatorio' });
+
+        let consult = `
+            SELECT DISTINCT vendedor
+            FROM tmp_tabfac
+            WHERE cia = 1 AND anio = ?
+        `;
+        const params = [panio];
+
+        if (pdistrito && pdistrito !== "Todos") {
+            consult += ` AND distrito = ?`;
+            params.push(pdistrito);
+        }
+
+        consult += ` GROUP BY cia, anio, vendedor`;
+
+        executeQuery(res, consult, params);
+    },
+
+    categoria: (req, res) => {
+        const { panio, pdistrito, pvendedor } = req.body;
+        if (!panio) return res.status(400).json({ error: 'Año es obligatorio' });
+
+        let consult = `
+            SELECT DISTINCT categoria
+            FROM tmp_tabfac
+            WHERE cia = 1 AND anio = ?
+        `;
+        const params = [panio];
+
+        if (pdistrito && pdistrito !== "Todos") {
+            consult += ` AND distrito = ?`;
+            params.push(pdistrito);
+        }
+        if (pvendedor && pvendedor !== "Todos") {
+            consult += ` AND vendedor = ?`;
+            params.push(pvendedor);
+        }
+
+        consult += ` ORDER BY categoria`;
+
+        executeQuery(res, consult, params);
+    }
+};

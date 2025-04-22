@@ -48,7 +48,7 @@ const connection = require('../models/db')
     }
 };*/
 
-
+/*
 module.exports.resumenVentas = (req, res) => {
     const { panio, pmes, pvendedor, pcategoria, pdistrito } = req.body;
 
@@ -204,4 +204,97 @@ module.exports.rankingProdUtilidad = (req, res) => {
             res.status(404).json({ error: 'No se encontraron datos de ventas' });
         }
     });
+};
+*/
+
+const connection = require('../models/db');
+
+// Función utilitaria para ejecutar SPs
+function executeProcedure(res, query, params) {
+    connection.query(query, params, (err, results) => {
+        if (err) {
+            console.error("Error al ejecutar el stored procedure:", err);
+            return res.status(500).json({ error: 'Error al obtener los datos' });
+        }
+
+        if (results && results[0] && results[0].length > 0) {
+            return res.json(results[0]);
+        } else {
+            return res.status(404).json({ error: 'No se encontraron datos' });
+        }
+    });
+}
+
+module.exports = {
+    resumenVentas: (req, res) => {
+        const { panio, pmes, pvendedor, pcategoria, pdistrito } = req.body;
+        if (!panio) return res.status(400).json({ error: 'Año es obligatorio' });
+
+        const consult = `CALL sp_resumen_ventas3(1, ?, ?, ?, ?, ?)`;
+        const params = [panio, pmes || null, pvendedor || null, pcategoria || null, pdistrito || null];
+        executeProcedure(res, consult, params);
+    },
+
+    ventasTotales: (req, res) => {
+        const { panio, pmes, pigv, pvendedor, pcategoria, pdistrito } = req.body;
+        if (!panio || pigv === undefined) return res.status(400).json({ error: 'Año e IGV son obligatorios' });
+
+        const consult = `CALL sp_ventas_anuales2(1, ?, ?, ?, ?, ?, ?)`;
+        const params = [panio, pmes, pigv, pvendedor || null, pcategoria || null, pdistrito || null];
+        executeProcedure(res, consult, params);
+    },
+
+    utilidades: (req, res) => {
+        const { panio, pmes, pvendedor, pcategoria, pdistrito } = req.body;
+        if (!panio) return res.status(400).json({ error: 'Año es obligatorio' });
+
+        const consult = `CALL sp_utilidades_anuales2(1, ?, ?, ?, ?, ?)`;
+        const params = [panio, pmes, pvendedor || null, pcategoria || null, pdistrito || null];
+        executeProcedure(res, consult, params);
+    },
+
+    valorCompra: (req, res) => {
+        const { panio, pmes, pvendedor, pcategoria, pdistrito } = req.body;
+        if (!panio) return res.status(400).json({ error: 'Año es obligatorio' });
+
+        const consult = `CALL sp_valor_compra_anuales2(1, ?, ?, ?, ?, ?)`;
+        const params = [panio, pmes, pvendedor || null, pcategoria || null, pdistrito || null];
+        executeProcedure(res, consult, params);
+    },
+
+    rankingCliUtilidad: (req, res) => {
+        const { panio, pmes, pvendedor, pcategoria, pdistrito } = req.body;
+        if (!panio) return res.status(400).json({ error: 'Año es obligatorio' });
+
+        const consult = `CALL sp_clientes_danmas_utilidad2(1, ?, ?, ?, ?, ?)`;
+        const params = [panio, pmes, pvendedor || null, pcategoria || null, pdistrito || null];
+        executeProcedure(res, consult, params);
+    },
+
+    rankingCliVentas: (req, res) => {
+        const { panio, pmes, pvendedor, pcategoria, pdistrito } = req.body;
+        if (!panio) return res.status(400).json({ error: 'Año es obligatorio' });
+
+        const consult = `CALL sp_clientes_danmas_ventas2(1, ?, ?, ?, ?, ?)`;
+        const params = [panio, pmes, pvendedor || null, pcategoria || null, pdistrito || null];
+        executeProcedure(res, consult, params);
+    },
+
+    rankingProdVentas: (req, res) => {
+        const { panio, pmes, pvendedor, pcategoria, pdistrito } = req.body;
+        if (!panio) return res.status(400).json({ error: 'Año es obligatorio' });
+
+        const consult = `CALL sp_productos_danmas_ventas2(1, ?, ?, ?, ?, ?)`;
+        const params = [panio, pmes, pvendedor || null, pcategoria || null, pdistrito || null];
+        executeProcedure(res, consult, params);
+    },
+
+    rankingProdUtilidad: (req, res) => {
+        const { panio, pmes, pvendedor, pcategoria, pdistrito } = req.body;
+        if (!panio) return res.status(400).json({ error: 'Año es obligatorio' });
+
+        const consult = `CALL sp_productos_danmas_utilidad2(1, ?, ?, ?, ?, ?)`;
+        const params = [panio, pmes, pvendedor || null, pcategoria || null, pdistrito || null];
+        executeProcedure(res, consult, params);
+    }
 };
