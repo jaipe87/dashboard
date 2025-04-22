@@ -25,7 +25,6 @@ module.exports.utilidadesAnuales = (req, res) => {
 };
 */
 
-const connection = require('../models/db');
 
 // Función utilitaria para ejecutar stored procedures
 function executeProcedure(res, query, params, emptyMessage) {

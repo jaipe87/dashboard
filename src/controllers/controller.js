@@ -207,7 +207,6 @@ module.exports.rankingProdUtilidad = (req, res) => {
 };
 */
 
-const connection = require('../models/db');
 
 // Función utilitaria para ejecutar SPs
 function executeProcedure(res, query, params) {

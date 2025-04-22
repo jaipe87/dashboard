@@ -61,7 +61,6 @@ module.exports.ventasAnuales = (req, res) => {
 };
 */
 
-const connection = require('../models/db');
 
 // Función utilitaria para consultas
 function executeProcedure(res, query, params, emptyMessage) {
